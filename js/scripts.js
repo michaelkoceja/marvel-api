@@ -1,10 +1,39 @@
-//business logic stuff for a particular module
-var ExampleModule = function(args) {
-  this.args = args; //to be replaced with constructor arguments
+var apiInfo = require ('./../.env').apiInfo;
+
+var Marvel = function() {
+  this.baseURI = 'https://gateway.marvel.com';
+  this.publicKey = apiInfo.publicKey;
+  this.privateKey = apiInfo.privateKey;
+  this.ts = apiInfo.ts;
+  this.hash = apiInfo.hash;
+  this.characterList = [];
 };
 
-ExampleModule.prototype.examplePrototype = function() {
-  return `this is an example prototype method`;
-};
+Marvel.prototype.characterInfo = function(selectedCharacters, displayCharacterInfo) {
+  $.get(this.makeQueryString('/v1/public/characters/' + selectedCharacters))
+    .then(function (response) {
+      displayCharacterInfo(response.data.results[0]);
+    });
 
-exports.exampleModule = ExampleModule;
+}
+
+Marvel.prototype.getList = function(displayCharacters) {
+  $.get(this.makeQueryString('/v1/public/characters'))
+    .then(function(response){
+      displayCharacters(response.data.results)
+    }).fail(function(error){
+      console.log('I broke it')
+    });
+}
+
+Marvel.prototype.makeQueryString = function (endpoint, options) {
+  var queryString = this.baseURI;
+  queryString += endpoint + '?';
+  queryString += 'apikey=' + this.publicKey + '&';
+  queryString += 'ts=' + this.ts + '&';
+  queryString += 'hash=' + this.hash + '&';
+
+  return queryString;
+}
+
+exports.marvelModule = Marvel;
